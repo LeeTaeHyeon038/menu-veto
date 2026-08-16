@@ -1,0 +1,16 @@
+# 앱을 만들면 앱 폴더 안에 자체 .gitignore가 생깁니다.
+# 이 파일은 프로젝트 전체에 해당하는 것만 다룹니다.
+
+# 운영체제가 만드는 파일
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 편집기 설정
+.vscode/
+.idea/
+
+# 비밀값 (실수로 올라가는 것을 막기 위해 루트에도 둔다)
+.env
+.env.*
+!.env.example
