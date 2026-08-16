@@ -105,6 +105,7 @@ menu-veto/
 
 ## 문서
 
+- **[HANDOFF.md](HANDOFF.md) — 팀원용 인수인계. 발표자료를 만든다면 여기부터**
 - [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) — 개요, 진행 단계, 결정 사항과 그 근거
 - [DESIGN.md](DESIGN.md) — 색·글자·간격·움직임 규칙.
   [awesome-design-md](https://github.com/voltagent/awesome-design-md)의 Starbucks
