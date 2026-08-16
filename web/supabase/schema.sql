@@ -48,7 +48,30 @@ create index if not exists events_session_idx on public.events (session_id);
 create index if not exists events_created_idx on public.events (created_at desc);
 
 -- ---------------------------------------------------------------------------
--- 2. RLS(행 수준 보안)
+-- 2. 권한 (GRANT) — 첫 번째 자물쇠
+--
+-- GRANT와 RLS는 층이 다르다. 둘 다 잠가야 한다.
+--   GRANT : "이 역할이 이 *테이블*에 접근할 수 있나" — 건물 출입증
+--   RLS   : "이 역할이 어떤 *행*을 다룰 수 있나"    — 방마다 걸린 자물쇠
+--
+-- 프로젝트를 만들 때 "Automatically expose new tables"를 켰든 껐든
+-- 결과가 같아지도록, 여기서 명시적으로 회수한 뒤 필요한 것만 준다.
+--
+-- anon = 브라우저에서 공개 키로 접속하는 역할. 우리 앱이 이걸로 동작한다.
+-- ---------------------------------------------------------------------------
+
+grant usage on schema public to anon, authenticated;
+
+-- 일단 전부 회수한다. 기본값으로 select가 붙어 있었다면 여기서 떨어진다
+revoke all on public.events from anon, authenticated;
+
+-- 남기는 것은 insert 하나뿐. 읽기·수정·삭제 권한 자체를 주지 않는다
+grant insert on public.events to anon, authenticated;
+
+-- 집계 뷰에는 아무 권한도 주지 않는다. 대시보드에서만 본다
+
+-- ---------------------------------------------------------------------------
+-- 3. RLS(행 수준 보안) — 두 번째 자물쇠
 --
 -- ⚠️ 이전 프로젝트(공지 뷰어)와 방향이 정반대다.
 --    저쪽: 공지는 공개 정보 → "누구나 읽기", 쓰기 금지
@@ -72,7 +95,7 @@ create policy "누구나 기록을 남길 수 있다"
 -- 정책이 없으면 RLS가 전부 막는다.
 
 -- ---------------------------------------------------------------------------
--- 3. 집계 뷰
+-- 4. 집계 뷰
 --
 -- security_invoker = on 을 붙인다. 이게 없으면 뷰가 만든 사람 권한으로 돌아서
 -- 공개 키로도 뷰를 통해 원본 데이터를 읽을 수 있게 된다. RLS를 우회하는 셈이다.
