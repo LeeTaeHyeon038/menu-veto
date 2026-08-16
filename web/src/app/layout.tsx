@@ -38,6 +38,17 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
   },
+
+  /*
+   * Google Search Console 소유권 확인용.
+   * 비밀값이 아니다. 애초에 HTML에 공개적으로 박아서 구글이 읽어가게 하는 값이라
+   * .env가 아니라 코드에 그대로 둔다.
+   *
+   * 이 태그가 사라지면 소유권 확인이 풀린다. 지우지 말 것.
+   */
+  verification: {
+    google: "p_Yvt6AGMASkbDcEkRI9J6P55tSVdF5o0lhZhTrcRng",
+  },
 };
 
 // 주 사용 환경이 모바일이다. 주소창 색까지 서비스 색으로 맞춘다
