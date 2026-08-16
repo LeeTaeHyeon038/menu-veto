@@ -5,13 +5,17 @@
  * 가설을 검증하는 것이다(PROJECT_OVERVIEW.md 9절). 그래서 화면을 만들 때부터
  * "언제·무엇을 기록할지"를 여기 한 곳에 모아 둔다.
  *
- * 기록은 두 곳으로 간다.
+ * 기록은 세 곳으로 간다.
  *   1. localStorage — 개발 중에 눈으로 확인하기 위한 것
- *   2. Supabase events 테이블 — 실제 집계용 (5단계에서 추가)
+ *   2. Supabase events 테이블 — 서비스 "안에서" 무엇을 했나 (5단계)
+ *   3. Google Analytics 4 — 서비스 "밖에서" 어떻게 왔고 어디서 나갔나 (6단계)
  *
- * 화면 코드는 이 파일이 무엇을 하는지 몰라도 된다. 실제로 5단계에서
- * Supabase를 붙이면서 화면 코드는 한 줄도 고치지 않았다.
+ * 화면 코드는 이 파일이 무엇을 하는지 몰라도 된다. 실제로 5·6단계에서
+ * Supabase와 GA4를 붙이면서 화면 코드는 한 줄도 고치지 않았다.
  */
+
+import { sendGAEvent } from "@next/third-parties/google";
+import { kpiClient } from "@/lib/supabase";
 
 export type KpiEvent =
   /** 인원을 골라 시작한 순간. 결정 시간 측정의 시작점 */
@@ -33,9 +37,16 @@ type LoggedEvent = KpiEvent & {
   at: string;
 };
 
-import { kpiClient } from "@/lib/supabase";
-
 const STORAGE_KEY = "menu-veto:events";
+
+/**
+ * GA4로 보낼 때 붙이는 접두사.
+ *
+ * ⚠️ GA4에는 예약된 이벤트 이름이 있고 'session_start'가 거기 포함된다.
+ * 그대로 보내면 GA4가 자기 자동 수집 이벤트로 취급해서 우리 값이 묻힌다.
+ * 그래서 전부 'menu_'를 붙여 우리 이벤트임을 분명히 한다.
+ */
+const GA_PREFIX = "menu_";
 
 let sessionId = "";
 
@@ -103,4 +114,22 @@ export function logEvent(event: KpiEvent) {
         console.warn("[KPI] 전송 실패:", error.message);
       }
     });
+
+  /*
+   * GA4로도 같은 이벤트를 보낸다. 둘은 보는 각도가 다르다.
+   *   Supabase : 서비스 "안에서" 무엇을 했나 (결정 시간, 수용률)
+   *   GA4      : 서비스 "밖에서" 어떻게 왔고 어디서 나갔나 (유입, 이탈 지점)
+   *
+   * 이 앱은 화면을 바꿔도 주소가 그대로라, GA4가 자동으로 재는 페이지 이동이
+   * 처음 한 번밖에 안 잡힌다. 그래서 단계 전환을 직접 이벤트로 보내야
+   * "어느 화면에서 나갔는가"를 볼 수 있다.
+   */
+  if (process.env.NEXT_PUBLIC_GA_ID) {
+    try {
+      const { type, ...params } = event;
+      sendGAEvent("event", `${GA_PREFIX}${type}`, params);
+    } catch {
+      // 광고 차단기 등으로 gtag가 없을 수 있다. 서비스는 계속 돌아가야 한다
+    }
+  }
 }

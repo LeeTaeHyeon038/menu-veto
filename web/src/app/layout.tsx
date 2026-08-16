@@ -1,3 +1,4 @@
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -27,6 +28,9 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  // 값이 없으면 아예 넣지 않는다. 로컬 개발까지 GA4에 잡히면 지표가 오염된다
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+
   return (
     <html
       lang="ko"
@@ -37,6 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
        * 포함해서, vh로 잡으면 화면 아래에 둔 버튼이 주소창에 가린다
        */}
       <body className="flex min-h-dvh flex-col">{children}</body>
+      {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
 }
