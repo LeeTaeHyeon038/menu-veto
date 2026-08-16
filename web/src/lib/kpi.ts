@@ -5,8 +5,12 @@
  * 가설을 검증하는 것이다(PROJECT_OVERVIEW.md 9절). 그래서 화면을 만들 때부터
  * "언제·무엇을 기록할지"를 여기 한 곳에 모아 둔다.
  *
- * 지금(2단계)은 브라우저 안에만 쌓아 두고, 5단계에서 sendEvent 안에서
- * Supabase로 보내기만 하면 된다. 화면 코드는 고칠 필요가 없다.
+ * 기록은 두 곳으로 간다.
+ *   1. localStorage — 개발 중에 눈으로 확인하기 위한 것
+ *   2. Supabase events 테이블 — 실제 집계용 (5단계에서 추가)
+ *
+ * 화면 코드는 이 파일이 무엇을 하는지 몰라도 된다. 실제로 5단계에서
+ * Supabase를 붙이면서 화면 코드는 한 줄도 고치지 않았다.
  */
 
 export type KpiEvent =
@@ -28,6 +32,8 @@ type LoggedEvent = KpiEvent & {
   sessionId: string;
   at: string;
 };
+
+import { kpiClient } from "@/lib/supabase";
 
 const STORAGE_KEY = "menu-veto:events";
 
@@ -51,6 +57,22 @@ export function startSession(): string {
   return sessionId;
 }
 
+/**
+ * 이벤트를 Supabase의 events 테이블 모양으로 바꾼다.
+ * 컬럼 구성은 supabase/schema.sql과 1:1로 맞춘다. 한쪽을 바꾸면 다른 쪽도 바꿔야 한다.
+ */
+function toRow(event: KpiEvent) {
+  return {
+    session_id: sessionId,
+    type: event.type,
+    people_count: "peopleCount" in event ? event.peopleCount : null,
+    turn: "turn" in event ? event.turn : null,
+    menu_id: "menuId" in event ? event.menuId : null,
+    attempt: "attempt" in event ? event.attempt : null,
+    elapsed_ms: "elapsedMs" in event ? event.elapsedMs : null,
+  };
+}
+
 export function logEvent(event: KpiEvent) {
   const logged: LoggedEvent = {
     ...event,
@@ -58,7 +80,6 @@ export function logEvent(event: KpiEvent) {
     at: new Date().toISOString(),
   };
 
-  // 5단계에서 여기에 Supabase 전송을 넣는다. 그전까지는 눈으로 확인할 수 있게 남긴다
   if (process.env.NODE_ENV !== "production") {
     console.debug("[KPI]", logged);
   }
@@ -71,4 +92,15 @@ export function logEvent(event: KpiEvent) {
   } catch {
     // 시크릿 모드 등에서 저장이 막혀도 서비스는 계속 돌아가야 한다
   }
+
+  // 전송은 기다리지 않는다. 사용자가 다음 화면으로 넘어가는 것을 막으면 안 된다.
+  // 실패해도 서비스는 그대로 굴러가야 하므로 에러를 밖으로 던지지 않는다
+  kpiClient
+    ?.from("events")
+    .insert(toRow(event))
+    .then(({ error }) => {
+      if (error && process.env.NODE_ENV !== "production") {
+        console.warn("[KPI] 전송 실패:", error.message);
+      }
+    });
 }
