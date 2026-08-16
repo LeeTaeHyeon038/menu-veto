@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+/*
+ * 색·그림자는 전부 여기 토큰으로만 정의한다. 컴포넌트에서 값을 직접 쓰지 않는다.
+ * 규칙과 근거는 저장소 루트의 DESIGN.md 참고.
+ *
+ * 이 팔레트는 awesome-design-md의 Starbucks 디자인 시스템을 바탕으로,
+ * 초록 대신 주황을 쓰고 다크 모드를 더해 다시 잡은 것이다.
+ */
+
+:root {
+  /* 브랜드 주황 4단계 — 역할마다 다른 주황을 쓴다. 하나로 통일하지 말 것 */
+  --brand: #a8410d; /* 글자로 쓰는 주황 (크림 위에서 읽혀야 하므로 어둡다) */
+  --brand-accent: #c24e12; /* 채우는 주황 (버튼 배경) */
+  --brand-strong: #93380a; /* 눌림 */
+  --brand-fg: #ffffff;
+
+  /* 캔버스 3단계 — 순백을 페이지 바탕으로 쓰지 않는다.
+     크림 위에 흰 카드가 놓여야 카드가 떠 보인다 */
+  --background: #f5f1ea;
+  --surface: #ede8e0;
+  --card: #ffffff;
+  --card-border: #ebe4da; /* 그림자가 주역이라 테두리는 아주 옅게 */
+
+  /* 결과 존 — 결과 화면 전체를 덮는다. 이 서비스의 클라이맥스.
+     라이트 모드에서는 어둡게 깔지 않고 "더 따뜻한 살구빛"으로 간다.
+     밝은 화면 세 개를 지나오다 갑자기 어두워지면 흐름이 끊기기 때문이다.
+     특별한 구간이라는 신호는 "면 색이 바뀐다"로 충분하고,
+     그 방향은 각 모드의 밝기를 따라간다 */
+  --house: #f9dec9;
+  --house-fg: #3a1d0e;
+  --house-muted: #7a5343;
+
+  /* 글자와 선 — 순수 검정을 쓰지 않는다. 따뜻한 배경 위에서 차갑게 튄다 */
+  --foreground: #241d18;
+  --muted: #6b6259;
+  --border: #ddd5c9;
+
+  /* 탈락한 카드 — 눈에 띄지 않되 "지워졌다"는 사실은 보여야 한다.
+     대비 약 3:1로 본문 기준(4.5:1)에 못 미치는 건 의도다. DESIGN.md 11절 참고 */
+  --card-out-bg: #ebe6de;
+  --card-out-fg: #8a7f76;
+  --card-out-border: #e2dad0;
+
+  /* 거부 */
+  --danger: #c02626;
+  /* 결과 존 위의 거부 버튼 글자. 존의 밝기가 모드마다 달라 값도 따라 뒤집힌다 */
+  --danger-on-house: #b3251a;
+
+  /* 깊이 — 진한 그림자 한 겹 대신 낮은 투명도를 2겹 쌓는다.
+     현실의 주광 + 환경광을 흉내 내는 방식 */
+  --elev-card: 0 0 0.5px rgba(0, 0, 0, 0.14), 0 1px 1px rgba(0, 0, 0, 0.24);
+  --elev-lift: 0 0 6px rgba(0, 0, 0, 0.24), 0 8px 12px rgba(0, 0, 0, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 진한 주황은 어두운 배경에서 안 읽히므로 밝은 쪽으로 뒤집는다 */
+    --brand: #ff9a63;
+    --brand-accent: #ff8a4c;
+    --brand-strong: #ffa771;
+    --brand-fg: #2a1006;
+
+    /* 중성 회색으로 가지 않는다. 따뜻한 근검정으로 뒤집는다 */
+    --background: #171310;
+    --surface: #201a16;
+    --card: #241d18;
+    --card-border: #3b302a;
+
+    /* 다크에서는 반대로 캔버스보다 더 어둡게 내려간다 */
+    --house: #0d0907;
+    --house-fg: #f2ebe6;
+    --house-muted: #a99c92;
+
+    --foreground: #f2ebe6;
+    --muted: #a99c92;
+    --border: #362d27;
+
+    --card-out-bg: #1a1512;
+    --card-out-fg: #7d726a;
+    --card-out-border: #2a231f;
+
+    --danger: #f87171;
+    --danger-on-house: #ff9a9a;
+
+    /* 어두운 면 위에서는 낮은 투명도 그림자가 보이지 않는다. 진하게 올린다 */
+    --elev-card: 0 0 0.5px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.6);
+    --elev-lift: 0 0 8px rgba(0, 0, 0, 0.6), 0 8px 16px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+
+  --color-brand: var(--brand);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-fg: var(--brand-fg);
+
+  --color-house: var(--house);
+  --color-house-fg: var(--house-fg);
+  --color-house-muted: var(--house-muted);
+
+  --color-card-out: var(--card-out-bg);
+  --color-card-out-fg: var(--card-out-fg);
+  --color-card-out-border: var(--card-out-border);
+
+  --color-danger: var(--danger);
+  --color-danger-on-house: var(--danger-on-house);
+
+  /* shadow-card / shadow-lift 유틸리티로 쓴다 */
+  --shadow-card: var(--elev-card);
+  --shadow-lift: var(--elev-lift);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* 한글이 깨끗하게 보이도록 시스템 기본 글꼴을 우선 사용 */
+  font-family:
+    var(--font-geist-sans), "Pretendard", "Malgun Gothic", system-ui,
+    sans-serif;
+  /* 전체가 조금 눌린 느낌이 이 디자인의 특징이다 */
+  letter-spacing: -0.01em;
+  /* 모바일에서 카드를 연타할 때 확대되는 것을 막는다 */
+  touch-action: manipulation;
+}
+
+/* 키보드로 이동할 때만 포커스 링을 보여준다 (마우스·터치에는 안 나옴) */
+:focus-visible {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* 화면이 바뀔 때 살짝 올라오며 나타난다. 단계가 넘어갔다는 신호 */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.28s ease-out both;
+}
+
+/* 카드를 지울 때 한 번 눌렸다 꺼지는 느낌 */
+@keyframes knock-out {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(0.9) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-knock-out {
+  animation: knock-out 0.35s ease-out both;
+}
+
+/* 최종 결과가 나올 때 크게 튀어나온다 */
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-pop {
+  animation: pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+/* 움직임을 불편해하는 사용자에게는 애니메이션을 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-knock-out,
+  .animate-pop {
+    animation: none;
+  }
+}
