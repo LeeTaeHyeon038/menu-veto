@@ -1,6 +1,7 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,9 +15,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "우리 뭐 먹지?",
-  description:
-    "먹고 싶은 걸 고르지 말고, 먹기 싫은 걸 지우세요. 여러 명이 각자 싫은 메뉴를 하나씩 지워 빠르게 메뉴를 정하는 서비스.",
+  // 상대 경로(예: opengraph-image)를 절대 주소로 바꿀 기준.
+  // 이게 없으면 미리보기 이미지 주소가 상대 경로로 나가 카톡에서 안 뜬다
+  metadataBase: new URL(SITE_URL),
+
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  keywords: ["메뉴 추천", "점심 메뉴", "메뉴 정하기", "뭐 먹지", "메뉴 고르기"],
+
+  // 카톡·슬랙 등에 링크를 붙여넣을 때 뜨는 미리보기.
+  // 이미지는 app/opengraph-image.tsx가 자동으로 연결된다
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 // 주 사용 환경이 모바일이다. 주소창 색까지 서비스 색으로 맞춘다
