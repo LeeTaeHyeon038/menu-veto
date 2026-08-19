@@ -11,7 +11,7 @@
 | **서비스** | https://menu-veto.vercel.app |
 | **코드** | https://github.com/LeeTaeHyeon038/menu-veto |
 | 방문 지표 | Google Analytics 4 (계정 초대 필요) |
-| 사용 기록 | Supabase (숫자는 CSV로 받아 공유) |
+| 사용 기록 | Supabase — 원본은 `events` 테이블 (아래 "원본 데이터" 참고) |
 
 서비스는 **핸드폰으로** 열어야 제대로 보입니다. 모바일이 주 사용 환경입니다.
 
@@ -124,6 +124,58 @@ select * from public.kpi_veto_ranking;   -- 어떤 카테고리가 가장 많이
 **⑥ 기록이 실패해도 서비스는 계속 돈다**
 KPI 저장이 안 된다고 메뉴를 못 정하게 만들면 안 됩니다.
 실제로 개발 중 이것 때문에 앱이 멈춘 적이 있어서 고쳤습니다.
+
+---
+
+## 원본 데이터 (`events` 테이블)
+
+**이 표 하나가 원본입니다.** 위의 KPI 뷰 세 개는 전부 이 표에서 계산해 낸 것이라,
+직접 분석하고 싶다면 이것만 있으면 됩니다.
+
+```sql
+select * from public.events order by created_at;
+```
+
+### 한 줄 = 한 사건
+
+사용자가 무언가 할 때마다 한 줄씩 쌓입니다. 한 번의 메뉴 결정(= 한 세션)은
+보통 여러 줄로 이루어집니다.
+
+| 열 | 뜻 |
+|---|---|
+| `session_id` | **한 번의 메뉴 결정을 묶는 키.** 같은 값끼리 한 세션 |
+| `type` | 무슨 일이 일어났나 (아래 표) |
+| `people_count` | 인원 수 (2~5) |
+| `turn` | 몇 번째 사람 차례였나 |
+| `menu_id` | 어떤 카테고리인가 |
+| `attempt` | 몇 번째 결과인가 (1 = 첫 결과, 2 = 재선정 결과) |
+| `elapsed_ms` | 시작부터 걸린 시간(밀리초). **룰렛 연출 시간은 이미 빼고 기록됩니다** |
+| `created_at` | 시각 |
+
+**이벤트 종류마다 채워지는 칸이 다릅니다.** 나머지는 비어 있는 게 정상입니다.
+
+| `type` | 언제 | 채워지는 칸 |
+|---|---|---|
+| `session_start` | 인원을 골라 시작 | `people_count` |
+| `veto` | 한 사람이 카테고리 하나를 지움 | `turn`, `menu_id` |
+| `result_shown` | 결과 화면이 보임 | `menu_id`, `attempt`, `elapsed_ms` |
+| `accepted` | "좋아, 먹으러 가자" | `menu_id`, `attempt`, `elapsed_ms` |
+| `rejected` | "이건 진짜 못 먹겠어" | `menu_id`, `attempt` |
+| `restart` | 처음부터 다시 | — |
+
+`menu_id` 값: `korean`(한식) `chinese`(중식) `japanese`(일식) `western`(양식)
+`fastfood`(패스트푸드) `bunsik`(분식) `light`(가벼운 식사) `soup`(국밥·찌개류)
+
+### 직접 계산할 때 주의할 점
+
+- **반드시 `session_id`로 묶어서 계산해야 합니다.** 줄 단위로 세면 의미가 없습니다
+- 완료한 세션 = 그 `session_id`에 `accepted`가 있는 세션
+- **시작만 하고 끝내지 않은 세션도 그대로 남아 있습니다.** 완료율을 재려면 필요한 데이터라
+  일부러 지우지 않았습니다. 빼고 계산하면 완료율이 항상 100%가 됩니다
+- 결정 시간은 `accepted` 줄의 `elapsed_ms`입니다 (1000으로 나누면 초)
+
+> `events`는 열 이름과 값이 전부 영문이라 **엑셀에서 한글 깨짐 문제가 없습니다.**
+> (한글 열 이름을 쓰는 KPI 뷰를 내보낼 때만 UTF-8 문제가 생깁니다)
 
 ---
 
